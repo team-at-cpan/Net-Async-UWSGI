@@ -26,7 +26,6 @@ use Protocol::UWSGI qw(:server);
 sub path { shift->{path} }
 sub backlog { shift->{backlog} }
 sub mode { shift->{mode} }
-sub json { shift->{json} ||= JSON::MaybeXS->new(utf8 => 1) }
 
 sub configure {
 	my ($self, %args) = @_;
@@ -201,12 +200,11 @@ my %status = (
 	404 => 'Not found',
 	500 => 'Internal server error',
 );
-my $json = JSON::MaybeXS->new;
 sub write_response {
 	my ($self, $stream, $code, $body) = @_;
-	my $content = encode(
-		'UTF-8' => ref($body) ? $json->encode($body) : $body
-	);
+	my $content = ref($body)
+		? encode_json($body)
+		: encode('UTF-8' => $body);
 	$stream->write(
 		'HTTP/1.1 ' . HTTP::Response->new(
 			$code => ($status{$code} // 'Unknown'), [

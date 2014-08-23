@@ -163,13 +163,17 @@ sub dispatch_request {
 
 sub finish_request {
 	my ($self) = @_;
-	$self->{request_body} = $self->json->incr_parse
+	$self->{request_body} = $self->{input_handler}->()
 		if $self->has_body;
 	$self->{completion} = $self->{on_request}->($self)
 	 ->then($self->curry::write_response)
 	 ->on_fail(sub { warn "failed? @_" })
 	 ->on_ready($self->curry::close_now);
-	0
+	return sub {
+		my ($self, $buffref, $eof) = @_;
+		$self->{completion}->cancel if $eof && !$self->{completion}->is_ready;
+		0
+	}
 }
 
 {
@@ -194,7 +198,7 @@ sub has_body {
 
 =head2 read_chunked
 
-Read handler for chunked data.
+Read handler for chunked data. Unlikely to be used by any real implementations.
 
 =cut
 
@@ -223,7 +227,7 @@ sub read_chunked {
 
 =head2 on_trailing_header
 
-Deal with trailing headers.
+Deal with trailing headers. Not yet implemented.
 
 =cut
 
@@ -250,9 +254,22 @@ sub read_to_length {
 	return 0;
 }
 
-sub json_handler {
+sub content_handler_raw {
 	my ($self, $data) = @_;
-	$self->json->incr_parse($data);
+	if(defined $data) {
+		$self->{data} .= $data;
+	} else {
+		return $self->{data}
+	}
+}
+
+sub content_handler_json {
+	my ($self, $data) = @_;
+	if(defined $data) {
+		$self->json->incr_parse($data);
+	} else {
+		return $self->json->incr_parse
+	}
 }
 
 my %status = (
@@ -265,6 +282,7 @@ my %status = (
 use constant USE_HTTP_RESPONSE => 0;
 sub write_response {
 	my ($self, $code, $hdr, $body) = @_;
+	my $type = ref($body) ? 'text/javascript' : 'text/plain';
 	my $content = ref($body) ? encode_json($body) : encode(
 		'UTF-8' => $body
 	);
@@ -273,7 +291,7 @@ sub write_response {
 		return $self->write(
 			'HTTP/1.1 ' . HTTP::Response->new(
 				$code => ($status{$code} // 'Unknown'), [
-					'Content-Type' => 'application/javascript',
+					'Content-Type' => $type,
 					'Content-Length' => length $content,
 					@$hdr
 				],
@@ -284,8 +302,9 @@ sub write_response {
 		return $self->write(
 			join "\015\012", (
 				'HTTP/1.1 ' . $code . ' ' . ($status{$code} // 'Unknown'),
-				'Content-Type: application/javascript',
+				'Content-Type: ' . $type,
 				'Content-Length: ' . length($content),
+				(bundle_by { join ': ', @_ } 2, @$hdr),
 				'',
 				$content
 			)

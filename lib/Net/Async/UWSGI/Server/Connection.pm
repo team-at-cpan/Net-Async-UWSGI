@@ -3,13 +3,11 @@ package Net::Async::UWSGI::Server::Connection;
 use strict;
 use warnings;
 
-use parent qw(IO::Async::Stream Protocol::UWSGI);
+use parent qw(IO::Async::Stream);
 
 =head1 NAME
 
 Net::Async::UWSGI::Server::Connection - represents an incoming connection to a server
-
-=head1 SYNOPSIS
 
 =head1 DESCRIPTION
 
@@ -313,60 +311,9 @@ sub write_response {
 	}
 }
 
-=pod
-
-Requests with no body:
-* GET
-* HEAD
-* OPTIONS
-* DELETE
-
-Expect a body:
-* POST
-* PUT
-
-JSON handler:
-
-http://tools.ietf.org/html/rfc7230#section-3.3
-
- Presence of a message body is signalled by a Content-Length
- or Transfer-Encoding header.
-
-Have Content-Length:
-* Read N bytes, via ->incr_parse, process completion
-Have T-E: Chunked:
-* Read length/data pieces, ->incr_parse, completion
-
-
-'env' => {
-'HTTP_ACCEPT_LANGUAGE' => 'en-GB,en-US;q=0.8,en;q=0.6',
-'REMOTE_PORT' => '57574',
-'PATH_INFO' => '/1.6.0/test',
-'HTTP_HOST' => 'uwsgi.lewisham.rumah',
-'HTTP_CONNECTION' => 'keep-alive',
-'QUERY_STRING' => '',
-'HTTP_ACCEPT' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-'CONTENT_TYPE' => '',
-'REQUEST_METHOD' => 'GET',
-'SERVER_NAME' => 'uwsgi.lewisham.rumah',
-'SERVER_PROTOCOL' => 'HTTP/1.1',
-'HTTP_ACCEPT_ENCODING' => 'gzip,deflate,sdch',
-'REQUEST_URI' => '/test',
-'REMOTE_ADDR' => '192.168.1.1',
-'HTTP_CACHE_CONTROL' => 'max-age=0',
-'HTTP_USER_AGENT' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36',
-'SERVER_PORT' => '80',
-'CONTENT_LENGTH' => '',
-'UWSGI_SCHEME' => 'http',
-'DOCUMENT_ROOT' => '/perl/somewhere'
-},
-=cut
-
 1;
 
 __END__
-
-=head1 SEE ALSO
 
 =head1 AUTHOR
 
@@ -374,5 +321,5 @@ Tom Molesworth <cpan@perlsite.co.uk>
 
 =head1 LICENSE
 
-Copyright Tom Molesworth 2011-2014. Licensed under the same terms as Perl itself.
+Copyright Tom Molesworth 2013-2014. Licensed under the same terms as Perl itself.
 

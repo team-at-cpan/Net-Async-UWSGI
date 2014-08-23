@@ -5,6 +5,16 @@ use warnings;
 
 use parent qw(IO::Async::Notifier);
 
+=head1 NAME
+
+Net::Async::UWSGI -
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=cut
+
 use curry;
 use curry::weak;
 
@@ -23,9 +33,31 @@ use HTTP::Response;
 
 use Protocol::UWSGI qw(:server);
 
+=head1 METHODS
+
+=cut
+
+=head2 path
+
+=cut
+
 sub path { shift->{path} }
+
+=head2 backlog
+
+=cut
+
 sub backlog { shift->{backlog} }
+
+=head2 mode
+
+=cut
+
 sub mode { shift->{mode} }
+
+=head2 configure
+
+=cut
 
 sub configure {
 	my ($self, %args) = @_;
@@ -35,12 +67,20 @@ sub configure {
 	$self->SUPER::configure(%args);
 }
 
+=head2 _add_to_loop
+
+=cut
+
 sub _add_to_loop {
 	my ($self, $loop) = @_;
 	delete $self->{listening};
 	$self->listening;
 	()
 }
+
+=head2 listening
+
+=cut
 
 sub listening {
 	my ($self) = @_;
@@ -72,6 +112,10 @@ sub listening {
 	);
 	$f
 }
+
+=head2 on_listen_start
+
+=cut
 
 sub on_listen_start {
 	my ($self, $f, $listener) = @_;
@@ -123,108 +167,15 @@ The event bus. See L<Mixin::Event::Dispatch::Bus>.
 
 sub bus { shift->{bus} ||= Mixin::Event::Dispatch::Bus->new }
 
-sub incoming_stream {
-	my ($self, $stream) = @_;
-	$self->debug_printf("Configuring stream $stream");
-	my $response = $self->loop->new_future;
-	my $start = $self->timeout('http_request_headers');
-
-	# Clean up everything when the response is done
-	$response->on_ready(sub {
-		$stream->want_writeready(0);
-		$stream->want_readready(0);
-		$stream->close_now;
-		undef $stream;
-		weaken($response);
-	});
-
-	$stream->configure(
-		on_read_error => sub {
-			my ($self, @stuff) = @_;
-			ERROR("on_read_error @_");
-			$response->cancel unless $response->is_ready;
-		},
-		on_write_error => sub {
-			my ($self, @stuff) = @_;
-			ERROR("on_write_error @_");
-			$response->cancel unless $response->is_ready;
-		},
-		on_read => $self->curry::weak::on_read($response),
-	);
-	$self->add_child($stream);
-}
-
-sub on_read {
-	my ($self, $response, $stream, $buffref, $eof) = @_;
-	warn "br = $buffref\n";
-	if(my $frame = extract_frame($buffref)) {
-		my $uri = uri_from_env($frame);
-		warn "Had UWSGI frame for " . $uri . "\n";
-		my $k = "$response";
-		$self->{requests}{$k} = my $f = $self->dispatch_request(
-			$frame,
-		)->else(sub {
-			$self->debug_printf("Failure, passing through error: @_");
-			# Pass through errors, but give us a chance to log the stat
-			return Future->wrap(@_)
-		})->then(sub {
-			my ($code, $body) = @_;
-			$self->debug_printf("Had $code and $body");
-			$self->stats('response.code' => $code);
-			$self->write_response(
-				$stream,
-				$code => $body
-			)
-		})->on_ready(sub {
-			$self->debug_printf("Wrote response");
-			$response->done;
-			# Clean up when we're done
-			delete $self->{requests}{$k}
-		});
-
-		# If the client cancels, so should we
-		$response->on_ready(sub {
-			$f->cancel unless $f->is_ready
-		});
-	}
-	if($eof) {
-		$response->cancel unless $response->is_ready;
-	}
-	return 0;
-}
-{
-my %status = (
-	200 => 'OK',
-	204 => 'No content',
-	400 => 'Bad request',
-	404 => 'Not found',
-	500 => 'Internal server error',
-);
-sub write_response {
-	my ($self, $stream, $code, $body) = @_;
-	my $content = ref($body)
-		? encode_json($body)
-		: encode('UTF-8' => $body);
-	$stream->write(
-		'HTTP/1.1 ' . HTTP::Response->new(
-			$code => ($status{$code} // 'Unknown'), [
-				'Content-Type'   => 'application/javascript',
-				'Content-Length' => length $content,
-				'Connection'     => 'close',
-			],
-			$content
-		)->as_string("\x0D\x0A")
-	)
-}
-}
-
-sub dispatch_request {
-	my ($self, $req) = @_;
-	$self->debug_printf("Handling request for [" . $req->{uri} . "]");
-	Future->wrap(
-		200 => { status => 'success' }
-	)
-}
-
 1;
+
+__END__
+
+=head1 AUTHOR
+
+Tom Molesworth <cpan@entitymodel.com>
+
+=head1 LICENSE
+
+Copyright Tom Molesworth 2013-2014. Licensed under the same terms as Perl itself.
 

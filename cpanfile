@@ -1,8 +1,9 @@
 requires 'parent', 0;
 requires 'curry', 0;
-requires 'Future', '>= 0.15';
-requires 'Try::Tiny', 0;
-requires 'Mixin::Event::Dispatch', '>= 1.000';
+requires 'Future', '>= 0.29';
+requires 'IO::Async', '>= 0.62';
+requires 'Mixin::Event::Dispatch', '>= 1.006';
+requires 'List::UtilsBy', 0;
 
 on 'test' => sub {
 	requires 'Test::More', '>= 0.98';

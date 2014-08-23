@@ -10,7 +10,7 @@ use curry::weak;
 
 use IO::Async::Listener;
 
-use Net::Async::UWSGI::Bus;
+use Mixin::Event::Dispatch::Bus;
 use Net::Async::UWSGI::Server::Connection;
 
 use Scalar::Util qw(weaken);
@@ -118,11 +118,11 @@ sub incoming_socket {
 
 =head2 bus
 
-The event bus. See L<Net::Async::UWSGI::Bus>.
+The event bus. See L<Mixin::Event::Dispatch::Bus>.
 
 =cut
 
-sub bus { shift->{bus} ||= Net::Async::UWSGI::Bus->new }
+sub bus { shift->{bus} ||= Mixin::Event::Dispatch::Bus->new }
 
 sub incoming_stream {
 	my ($self, $stream) = @_;

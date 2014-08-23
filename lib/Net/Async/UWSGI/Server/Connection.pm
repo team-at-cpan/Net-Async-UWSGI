@@ -180,6 +180,7 @@ sub finish_request {
 my %methods_with_body = (
 	PUT  => 1,
 	POST => 1,
+	PROPPATCH => 1,
 );
 
 =head2 has_body

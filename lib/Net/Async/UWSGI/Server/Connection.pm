@@ -22,6 +22,15 @@ use IO::Async::Timer::Countdown;
 
 use Encode qw(encode);
 use Protocol::UWSGI qw(:server);
+use List::UtilsBy qw(bundle_by);
+
+=head2 CONTENT_TYPE_HANDLER
+
+=cut
+
+our %CONTENT_TYPE_HANDLER = (
+	'application/javascript' => 'json',
+);
 
 =head1 METHODS
 
@@ -43,11 +52,13 @@ Applies configuration parameters.
 
 sub configure {
 	my ($self, %args) = @_;
-	for(qw(bus on_request)) {
+	for(qw(bus on_request default_content_handler)) {
 		$self->{$_} = delete $args{$_} if exists $args{$_};
 	}
 	$self->SUPER::configure(%args);
 }
+
+sub default_content_handler { shift->{default_content_handler} }
 
 =head2 json
 

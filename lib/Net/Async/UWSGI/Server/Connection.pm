@@ -82,7 +82,7 @@ sub on_read {
 	if(my $pkt = extract_frame($buffref)) {
 		$self->{env} = $pkt;
 		# We have a request, start processing
-		return $self->dispatch_request;
+		return $self->can('dispatch_request');
 	} elsif($eof) {
 		# EOF before a valid request? Bail out immediately
 		$self->cancel;
@@ -134,23 +134,27 @@ somewhere.
 =cut
 
 sub dispatch_request {
-	my ($self) = @_;
-#	my $uri = uri_from_env(my $env = $self->env);
-#	$self->debug_printf("Handling %s request for [%s]", $env->{REQUEST_METHOD}, $uri);
-#	$self->debug_printf("Key [%s] is %s", $_, $env->{$_}) for sort keys %$env;
+	my ($self, $buffref, $eof) = @_;
 
 	# Plain GET request? We might be able to bail out here
 	return $self->finish_request unless $self->has_body;
 
-	# We're using the JSON filter here. Hardcoded.
-	$self->{input_handler} = $self->curry::weak::json_handler;
-
-	# Okay, still something left... try to read N bytes if we have content length
 	my $env = $self->env;
-	$self->{remaining} = $env->{CONTENT_LENGTH};
-	return $self->can('read_to_length') if $env->{CONTENT_LENGTH};
+	my $handler = $self->default_content_handler || 'raw';
+	if(my $type = $env->{CONTENT_TYPE}) {
+		$handler = $CONTENT_TYPE_HANDLER{$type} if exists $CONTENT_TYPE_HANDLER{$type};
+	}
+	$handler = 'content_handler_' . $handler;
+	$self->{input_handler} = $self->${\"curry::weak::$handler"};
 
-	# Streaming would be nice, but nginx has no support for this
+	# Try to read N bytes if we have content length. Most UWSGI implementations seem
+	# to set this.
+	if(exists $env->{CONTENT_LENGTH}) {
+		$self->{remaining} = $env->{CONTENT_LENGTH};
+		return $self->can('read_to_length');
+	}
+
+	# Streaming might be nice, but nginx has no support for this
 	if(exists $env->{HTTP_TRANSFER_ENCODING} && $env->{HTTP_TRANSFER_ENCODING} eq 'chunked') {
 		return $self->can('read_chunked');
 	}

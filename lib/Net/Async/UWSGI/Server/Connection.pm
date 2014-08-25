@@ -253,6 +253,8 @@ sub read_to_length {
 	return 0;
 }
 
+sub request_body { shift->{request_body} }
+
 sub content_handler_raw {
 	my ($self, $data) = @_;
 	if(defined $data) {

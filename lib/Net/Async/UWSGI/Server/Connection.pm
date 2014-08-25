@@ -253,6 +253,12 @@ sub read_to_length {
 	return 0;
 }
 
+=head2 request_body
+
+Accessor for the request body, available to the L</finish_request> callback.
+
+=cut
+
 sub request_body { shift->{request_body} }
 
 sub content_handler_raw {

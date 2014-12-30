@@ -1,6 +1,13 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	No new features.
+
+	Test fixes:
+	* Win32 fails due to missing functions in the Socket API, so attempt
+	to prevent installation there via Dist::Zilla::Plugin::AssertOS.
+	Haven't tested this on a windows system, just looking for a minimal-effort
+	way to avoid spurious test failures here.
 
 0.003     2014-12-28 19:04:10+00:00 Europe/London
 	No new features.

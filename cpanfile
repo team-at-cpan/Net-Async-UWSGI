@@ -1,6 +1,6 @@
 requires 'parent', 0;
 requires 'curry', 0;
-requires 'Future', '>= 0.29';
+requires 'Future', '>= 0.30';
 requires 'IO::Async', '>= 0.62';
 requires 'Mixin::Event::Dispatch', '>= 1.006';
 requires 'List::UtilsBy', 0;

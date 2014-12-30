@@ -7,7 +7,7 @@ use parent qw(IO::Async::Notifier);
 
 =head1 NAME
 
-Net::Async::UWSGI -
+Net::Async::UWSGI::Server - server implementation for UWSGI
 
 =head1 SYNOPSIS
 

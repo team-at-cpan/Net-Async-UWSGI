@@ -165,8 +165,9 @@ sub finish_request {
 		if $self->has_body;
 	$self->{completion} = $self->{on_request}->($self)
 	 ->then($self->curry::write_response)
-	 ->on_fail(sub { warn "failed? @_" })
-	 ->on_ready($self->curry::close_now);
+	 ->on_fail(sub {
+	 	$self->debug_printf("Failed while attempting to handle request: %s (%s)", @_);
+	})->on_ready($self->curry::close_now);
 	return sub {
 		my ($self, $buffref, $eof) = @_;
 		$self->{completion}->cancel if $eof && !$self->{completion}->is_ready;

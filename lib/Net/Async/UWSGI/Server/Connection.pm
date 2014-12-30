@@ -271,12 +271,27 @@ sub content_handler_raw {
 	}
 }
 
+=head2 content_handler_json
+
+Handle JSON content.
+
+=cut
+
 sub content_handler_json {
 	my ($self, $data) = @_;
 	if(defined $data) {
-		$self->json->incr_parse($data);
+		eval {
+			$self->json->incr_parse($data);
+			1
+		} or do {
+			$self->debug_printf("Invalid JSON received: %s", $@);
+		};
 	} else {
-		return $self->json->incr_parse
+		return eval {
+			$self->json->incr_parse
+		} // do {
+			$self->debug_printf("Invalid JSON from incr_parse: %s", $@);
+		}
 	}
 }
 

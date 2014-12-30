@@ -1,6 +1,13 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	No new features.
+
+	Bugs fixed:
+	* Write failure would warn(), replaced with debug_printf since this is
+	common when clients disconnect partway through writing the response
+	* Invalid JSON would throw an exception, this is now caught and reported
+	via ->debug_printf only.
 
 0.002     2014-08-25 13:55:12+01:00 Europe/London
 	New features:

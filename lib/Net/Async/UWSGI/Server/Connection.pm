@@ -30,6 +30,8 @@ our %CONTENT_TYPE_HANDLER = (
 	'application/javascript' => 'json',
 );
 
+use constant USE_HTTP_RESPONSE => 0;
+
 =head1 METHODS
 
 =cut
@@ -296,13 +298,36 @@ sub content_handler_json {
 }
 
 my %status = (
+	100 => 'Continue',
+	101 => 'Switching protocols',
+	102 => 'Processing',
 	200 => 'OK',
+	201 => 'Created',
+	202 => 'Accepted',
+	203 => 'Non-authoritative information',
 	204 => 'No content',
+	205 => 'Reset content',
+	206 => 'Partial content',
+	207 => 'Multi-status',
+	208 => 'Already reported',
+	226 => 'IM used',
+	300 => 'Multiple choices',
+	301 => 'Moved permanently',
+	302 => 'Found',
+	303 => 'See other',
+	304 => 'Not modified',
+	305 => 'Use proxy',
+	307 => 'Temporary redirect',
+	308 => 'Permanent redirect',
 	400 => 'Bad request',
+	401 => 'Unauthorised',
+	402 => 'Payment required',
+	403 => 'Forbidden',
 	404 => 'Not found',
+	405 => 'Method not allowed',
 	500 => 'Internal server error',
 );
-use constant USE_HTTP_RESPONSE => 0;
+
 sub write_response {
 	my ($self, $code, $hdr, $body) = @_;
 	my $type = ref($body) ? 'text/javascript' : 'text/plain';

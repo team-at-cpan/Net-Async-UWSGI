@@ -1,6 +1,11 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	No new features.
+
+	Bugs fixed:
+	* Added some more default messages for IANA-assigned HTTP status codes,
+	http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
 
 0.004     2014-12-30 12:15:18+00:00 Europe/London
 	No new features.

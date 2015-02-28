@@ -3,25 +3,21 @@ package Net::Async::UWSGI;
 use strict;
 use warnings;
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 =head1 NAME
 
 Net::Async::UWSGI - support the universal webserver gateway interface protocol in IO::Async
 
-=head1 SYNOPSIS
-
 =head1 DESCRIPTION
 
-=head1 METHODS
+See L<Net::Async::UWSGI::Server>.
 
 =cut
 
 1;
 
 __END__
-
-=head1 SEE ALSO
 
 =head1 AUTHOR
 
